@@ -1,0 +1,20 @@
+# render.yaml — Render.com deployment configuration
+# Letakkan file ini di root folder backend/
+# Render akan auto-detect dan deploy sesuai konfigurasi ini
+
+services:
+  - type: web
+    name: skywheatr-api
+    runtime: node
+    region: singapore   # Paling dekat Indonesia
+    plan: free
+    buildCommand: npm install
+    startCommand: node src/index.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false   # Diisi manual di Render dashboard (dari Neon)
+      - key: FRONTEND_URL
+        sync: false   # Diisi manual: https://your-app.web.app

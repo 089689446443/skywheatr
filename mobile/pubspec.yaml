@@ -1,0 +1,65 @@
+name: skywheatr
+description: "Skywheatr - Aplikasi Catatan Cuaca Harian Mobile"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # HTTP requests ke backend
+  http: ^1.2.1
+  
+  # Format tanggal & waktu Indonesia
+  intl: ^0.19.0
+  
+  # State management ringan
+  provider: ^6.1.2
+  
+  # GPS & lokasi perangkat
+  geolocator: ^12.0.0
+  
+  # Izin runtime (GPS)
+  permission_handler: ^11.3.1
+  
+  # Icon cutsomer
+  cupertino_icons: ^1.0.6
+
+  # Google Fonts — Inter (mirip SF Pro iPhone)
+  google_fonts: ^6.1.0
+  shared_preferences: ^2.5.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/bg.png
+    - assets/bg_dark.png
+    - assets/ic_search.png
+    - assets/ic_loader.png
+    - assets/ic_menu.png
+    - assets/ic_home.png
+    - assets/moon.png
+    - assets/logo_app.png
+    - assets/logo_splash.png
+    - assets/ic_back.png
+    - assets/ic_plus.png
+    - assets/ic_pin.png
+    - assets/weather_thunderstorm.png
+    - assets/weather_heavy_rain.png
+    - assets/weather_partly_cloudy_day.png
+    - assets/weather_partly_cloudy_night.png
+    - assets/weather_light_rain.png
+    - assets/search_bar_light.png
+    - assets/search_card_light.png
+    - assets/search_bar_dark.png
+    - assets/search_card_dark.png
+    - assets/ic_edit.png
+    - assets/ic_delete.png

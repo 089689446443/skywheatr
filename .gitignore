@@ -1,0 +1,10 @@
+node_modules/
+build/
+.env
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+*.dill
+*.sqlite
+skywheatr.db
