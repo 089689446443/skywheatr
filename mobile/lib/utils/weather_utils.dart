@@ -63,7 +63,7 @@ class WeatherUtils {
       if (isNight) {
         return 'assets/moon.png';
       } else {
-        return 'assets/weather_partly_cloudy_day.png';
+        return 'draw_sun';
       }
     }
 

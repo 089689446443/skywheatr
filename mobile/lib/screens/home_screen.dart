@@ -106,6 +106,26 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       if (locs.isNotEmpty) {
         _primaryLocation = locs.firstWhere((l) => l.isPrimary, orElse: () => locs.first);
         _weather = await _api.fetchWeather(lat: _primaryLocation!.latitude, lon: _primaryLocation!.longitude);
+        
+        // Auto-Theme Logic based on Sunrise / Sunset
+        final today = _weather?.forecast.isNotEmpty == true ? _weather!.forecast.first : null;
+        if (today != null && today.sunrise != null && today.sunset != null) {
+          try {
+            final now = DateTime.now();
+            final sunrise = DateTime.parse(today.sunrise!).toLocal();
+            final sunset = DateTime.parse(today.sunset!).toLocal();
+            
+            final nowTime = now.hour * 60 + now.minute;
+            final sunriseTime = sunrise.hour * 60 + sunrise.minute;
+            final sunsetTime = sunset.hour * 60 + sunset.minute;
+            
+            if (nowTime >= sunriseTime && nowTime <= sunsetTime) {
+              themeNotifier.value = ThemeMode.light;
+            } else {
+              themeNotifier.value = ThemeMode.dark;
+            }
+          } catch (_) {}
+        }
       } else {
         _primaryLocation = null;
         _weather = null;
@@ -212,7 +232,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     return Positioned(
       top: 0, left: 0, right: 0,
       child: Container(
-        color: isDark ? const Color(0xFF111721).withOpacity(0.95) : _bg.withOpacity(0.95),
+        color: Colors.transparent,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -315,11 +335,35 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ),
         const SizedBox(height: 16),
         // Big Icon
-        Image.asset(
-          WeatherUtils.getWeatherIconAsset(w.weatherCode), 
-          width: 140, 
-          height: 140, 
-          fit: BoxFit.contain
+        Builder(
+          builder: (context) {
+            final isNight = Theme.of(context).brightness == Brightness.dark;
+            final asset = WeatherUtils.getWeatherIconAsset(w.weatherCode, isNight: isNight);
+            
+            if (asset == 'draw_sun') {
+              return Container(
+                width: 120, height: 120,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [Color(0xFFFFE082), Color(0xFFFF8F00)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  boxShadow: [
+                    BoxShadow(color: Color(0x66FF8F00), blurRadius: 40, spreadRadius: 10),
+                  ],
+                ),
+              );
+            }
+            
+            return Image.asset(
+              asset, 
+              width: 140, 
+              height: 140, 
+              fit: BoxFit.contain
+            );
+          }
         ),
         const SizedBox(height: 8),
         Row(
@@ -481,7 +525,26 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   children: [
                     Text(dayName, style: GoogleFonts.manrope(fontSize: 12, fontWeight: FontWeight.w500, color: _textMain)),
                     const SizedBox(height: 12),
-                    Image.asset(WeatherUtils.getWeatherIconAsset(d.weatherCode), width: 36, height: 36),
+                    Builder(
+                      builder: (context) {
+                        final isNight = Theme.of(context).brightness == Brightness.dark;
+                        final asset = WeatherUtils.getWeatherIconAsset(d.weatherCode, isNight: isNight);
+                        if (asset == 'draw_sun') {
+                          return Container(
+                            width: 32, height: 32,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                colors: [Color(0xFFFFE082), Color(0xFFFF8F00)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                            ),
+                          );
+                        }
+                        return Image.asset(asset, width: 36, height: 36);
+                      }
+                    ),
                     const SizedBox(height: 12),
                     Text('$temp°', style: GoogleFonts.lexend(fontSize: 18, color: _textMain)),
                   ],
