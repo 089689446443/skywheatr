@@ -8,10 +8,10 @@
 
 class ApiConfig {
   // ── Toggle ini saat akan build untuk hosting ──────────────
-  static const bool _isProduction = false;
+  static const bool _isProduction = true;
 
   // ── Ganti URL ini setelah backend di-deploy ke Render ─────
-  static const String _productionUrl = 'https://skywheatr-api.onrender.com';
+  static const String _productionUrl = 'https://skywheatr.vercel.app';
   static const String _localUrl      = 'http://192.168.124.90:3000';
 
   // ── Digunakan oleh seluruh app ─────────────────────────────
