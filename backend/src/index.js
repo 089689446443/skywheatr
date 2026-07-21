@@ -19,20 +19,7 @@ const allowedOrigins = [
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
-app.use(cors({
-  origin: (origin, cb) => {
-    // Allow requests with no origin (curl, Postman, mobile)
-    if (!origin) return cb(null, true);
-    // Allow semua localhost untuk development
-    if (origin.includes('localhost') || origin.includes('127.0.0.1')) return cb(null, true);
-    // Allow Firebase / domain yang terdaftar
-    if (allowedOrigins.includes(origin) || (process.env.FRONTEND_URL && origin.includes('web.app'))) {
-      return cb(null, true);
-    }
-    cb(new Error(`CORS: Origin ${origin} tidak diizinkan.`));
-  },
-  credentials: true,
-}));
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
