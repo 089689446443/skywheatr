@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:geolocator/geolocator.dart';
 import 'dart:ui' as ui;
 
 import '../models/location.dart';
@@ -55,6 +56,46 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _weather = widget.initialWeather;
     _allLocations = widget.initialLocations;
     _error = widget.initialError;
+    
+    if (_allLocations.isEmpty) {
+      _detectCurrentLocation();
+    }
+  }
+
+  Future<void> _detectCurrentLocation() async {
+    setState(() { _loading = true; _error = null; });
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) throw Exception('GPS tidak aktif');
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) throw Exception('Izin lokasi ditolak');
+      }
+      
+      if (permission == LocationPermission.deniedForever) {
+        throw Exception('Izin lokasi ditolak permanen');
+      }
+
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.low,
+      );
+
+      // Save as new location with a generic name (or reverse geocode)
+      // Since we don't have reverse geocoding in API service directly, we'll just name it 'Lokasi Saat Ini'
+      final newLoc = Location(
+        name: 'Lokasi Saat Ini',
+        latitude: position.latitude,
+        longitude: position.longitude,
+      );
+      
+      await _api.createLocation(newLoc);
+      await _refreshData();
+    } catch (e) {
+      _error = 'Gagal mendeteksi lokasi otomatis. Silakan tambah lokasi manual.';
+      setState(() => _loading = false);
+    }
   }
 
   Future<void> _refreshData() async {
@@ -247,21 +288,27 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final emoji = WeatherUtils.getWeatherEmoji(w.weatherCode);
     final label = WeatherUtils.getWeatherLabel(w.weatherCode);
     final temp = w.temperature.toStringAsFixed(0);
+    
+    final parts = loc.name.split('|');
+    final actualCity = parts[0];
+    final customAlias = parts.length > 1 ? parts[1] : '';
+    final displayName = customAlias.isNotEmpty ? '$actualCity - $customAlias' : actualCity;
 
     return Column(
       children: [
         Text(
-          loc.name,
-          style: GoogleFonts.miriamLibre(
+          displayName,
+          style: GoogleFonts.manrope(
             fontSize: 28,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w800,
             color: _textMain,
           ),
+          textAlign: TextAlign.center,
         ),
         if (loc.country.isNotEmpty)
           Text(
             loc.country,
-            style: GoogleFonts.miriamLibre(
+            style: GoogleFonts.manrope(
               fontSize: 16,
               color: _textSub,
             ),
@@ -303,9 +350,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         ),
         Text(
           label,
-          style: GoogleFonts.inter(
+          style: GoogleFonts.manrope(
             fontSize: 18,
             color: _textMain,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ],
@@ -536,13 +584,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         children: [
           const Icon(Icons.location_off, size: 60, color: _textSub),
           const SizedBox(height: 16),
-          Text('Belum ada lokasi', style: GoogleFonts.inter(color: _textMain, fontSize: 18)),
+          Text('Belum ada lokasi', style: GoogleFonts.manrope(color: _textMain, fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: _goToSearch,
             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A90E2)),
-            child: const Text('Cari Lokasi'),
+            child: Text('Cari Lokasi', style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
           ),
+          const SizedBox(height: 16),
+          TextButton(
+            onPressed: _detectCurrentLocation,
+            child: Text('Gunakan Lokasi Saat Ini', style: GoogleFonts.manrope(color: _textSub)),
+          )
         ],
       ),
     );

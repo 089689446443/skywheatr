@@ -22,15 +22,12 @@ class WeatherUtils {
   static String getWeatherEmoji(int? code) {
     if (code == null) return '🌡️';
     if (code == 0) return '☀️';
-    if (code == 1) return '🌤️';
-    if (code == 2) return '⛅';
+    if (code == 1 || code == 2) return '🌤️';
     if (code == 3) return '☁️';
     if (code == 45 || code == 48) return '🌫️';
-    if (code >= 51 && code <= 57) return '🌦️';
-    if (code >= 61 && code <= 67) return '🌧️';
+    if (code >= 51 && code <= 67) return '🌧️';
     if (code >= 71 && code <= 77) return '❄️';
-    if (code >= 80 && code <= 82) return '⛈️';
-    if (code == 85 || code == 86) return '🌨️';
+    if (code >= 80 && code <= 82) return '🌦️';
     if (code >= 95 && code <= 99) return '⛈️';
     return '🌡️';
   }
@@ -39,22 +36,30 @@ class WeatherUtils {
   static String getWeatherIconAsset(int? code, {bool isNight = false}) {
     if (code == null) return 'assets/weather_partly_cloudy_day.png'; // fallback
 
-    // Thunderstorm
+    // Badai petir
     if (code >= 95 && code <= 99) {
       return 'assets/weather_thunderstorm.png';
     }
 
-    // Heavy Rain / Rain
-    if (code >= 61 && code <= 67) return 'assets/weather_heavy_rain.png';
-    if (code >= 80 && code <= 82) return 'assets/weather_heavy_rain.png';
+    // Hujan Lebat (80-82)
+    if (code >= 80 && code <= 82) {
+      return 'assets/weather_heavy_rain.png';
+    }
 
-    // Light Rain / Drizzle / Snow
-    if (code >= 51 && code <= 57) return 'assets/weather_light_rain.png';
-    if (code >= 71 && code <= 77) return 'assets/weather_light_rain.png';
-    if (code == 85 || code == 86) return 'assets/weather_light_rain.png';
+    // Hujan / Gerimis (51-67)
+    if (code >= 51 && code <= 67) return 'assets/weather_light_rain.png';
+    
+    // Salju (71-77)
+    if (code >= 71 && code <= 77) return 'assets/weather_light_rain.png'; // placeholder for snow
 
-    // Clear or Cloudy
-    if (code == 0 || code == 1 || code == 2 || code == 3 || code == 45 || code == 48) {
+    // Berkabut (45-48)
+    if (code == 45 || code == 48) return 'assets/weather_partly_cloudy_day.png'; // placeholder for fog
+
+    // Mendung penuh
+    if (code == 3) return 'assets/weather_partly_cloudy_day.png'; // placeholder for cloud
+
+    // Cerah / Sebagian cerah (0, 1, 2)
+    if (code == 0 || code == 1 || code == 2) {
       if (isNight) {
         return 'assets/moon.png';
       } else {

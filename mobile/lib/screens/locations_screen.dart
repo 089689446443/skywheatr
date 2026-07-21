@@ -252,21 +252,28 @@ class _LocationsScreenState extends State<LocationsScreen> {
                       children: [
                         AnimatedAlign(
                           duration: const Duration(milliseconds: 200),
-                          alignment: isDark ? Alignment.centerRight : Alignment.centerLeft,
+                          alignment: Theme.of(context).brightness == Brightness.dark
+                              ? Alignment.centerRight
+                              : Alignment.centerLeft,
                           child: Container(
                             width: 20,
                             height: 20,
-                            decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                            ),
                           ),
                         ),
                         Align(
-                          alignment: isDark ? Alignment.centerLeft : Alignment.centerRight,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 4),
-                            child: Container(
-                              width: 8, height: 8,
-                              decoration: const BoxDecoration(color: Color(0xFFFACC15), shape: BoxShape.circle),
-                            ),
+                          alignment: Theme.of(context).brightness == Brightness.dark
+                              ? Alignment.centerLeft
+                              : Alignment.centerRight,
+                          child: Icon(
+                            Theme.of(context).brightness == Brightness.dark 
+                                ? Icons.nightlight_round 
+                                : Icons.wb_sunny,
+                            color: const Color(0xFFFACC15),
+                            size: 14,
                           ),
                         ),
                       ],

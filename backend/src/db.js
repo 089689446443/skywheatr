@@ -37,6 +37,7 @@ async function initializeSchema() {
   const tableSql = `
     CREATE TABLE IF NOT EXISTS locations (
       id          ${usePostgres ? 'SERIAL PRIMARY KEY' : 'INTEGER PRIMARY KEY AUTOINCREMENT'},
+      device_id   TEXT    NOT NULL DEFAULT 'default',
       name        TEXT    NOT NULL,
       country     TEXT    DEFAULT '',
       latitude    DOUBLE PRECISION NOT NULL,

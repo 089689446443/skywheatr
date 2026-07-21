@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 import '../config/api_config.dart';
 import '../models/weather_note.dart';
 import '../models/location.dart';
@@ -19,10 +21,25 @@ class ApiService {
   ApiService._internal();
 
   final _client = http.Client();
-  Map<String, String> get _headers => {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  };
+
+  Future<String> _getDeviceId() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? deviceId = prefs.getString('device_id');
+    if (deviceId == null) {
+      deviceId = const Uuid().v4();
+      await prefs.setString('device_id', deviceId);
+    }
+    return deviceId;
+  }
+
+  Future<Map<String, String>> _getHeaders() async {
+    final deviceId = await _getDeviceId();
+    return {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'X-Device-ID': deviceId,
+    };
+  }
 
   // ═══════════════════════════════════════════════════════
   // WEATHER
@@ -34,7 +51,8 @@ class ApiService {
       '${ApiConfig.baseUrl}/api/weather?lat=$lat&lon=$lon',
     );
     try {
-      final res = await _client.get(uri, headers: _headers).timeout(ApiConfig.receiveTimeout);
+      final headers = await _getHeaders();
+      final res = await _client.get(uri, headers: headers).timeout(ApiConfig.receiveTimeout);
       final body = jsonDecode(res.body) as Map<String, dynamic>;
       if (res.statusCode == 200 && body['success'] == true) {
         return WeatherData.fromJson(body['data'] as Map<String, dynamic>);
@@ -59,7 +77,8 @@ class ApiService {
       '${ApiConfig.baseUrl}/api/geocode?q=${Uri.encodeComponent(query)}',
     );
     try {
-      final res = await _client.get(uri, headers: _headers).timeout(ApiConfig.receiveTimeout);
+      final headers = await _getHeaders();
+      final res = await _client.get(uri, headers: headers).timeout(ApiConfig.receiveTimeout);
       final body = jsonDecode(res.body) as Map<String, dynamic>;
       if (res.statusCode == 200 && body['success'] == true) {
         final list = body['data'] as List<dynamic>? ?? [];
@@ -81,7 +100,8 @@ class ApiService {
   Future<List<Location>> getAllLocations() async {
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/locations');
     try {
-      final res = await _client.get(uri, headers: _headers).timeout(ApiConfig.receiveTimeout);
+      final headers = await _getHeaders();
+      final res = await _client.get(uri, headers: headers).timeout(ApiConfig.receiveTimeout);
       final body = jsonDecode(res.body) as Map<String, dynamic>;
       if (res.statusCode == 200 && body['success'] == true) {
         final list = body['data'] as List<dynamic>? ?? [];
@@ -99,8 +119,9 @@ class ApiService {
   Future<Location> createLocation(Location location) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/locations');
     try {
+      final headers = await _getHeaders();
       final res = await _client
-          .post(uri, headers: _headers, body: jsonEncode(location.toJson()))
+          .post(uri, headers: headers, body: jsonEncode(location.toJson()))
           .timeout(ApiConfig.receiveTimeout);
       final body = jsonDecode(res.body) as Map<String, dynamic>;
       if ((res.statusCode == 200 || res.statusCode == 201) && body['success'] == true) {
@@ -118,8 +139,9 @@ class ApiService {
   Future<Location> updateLocation(int id, {required String name, String? country, String? timezone}) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/locations/$id');
     try {
+      final headers = await _getHeaders();
       final res = await _client
-          .put(uri, headers: _headers, body: jsonEncode({
+          .put(uri, headers: headers, body: jsonEncode({
             'name': name,
             if (country != null) 'country': country,
             if (timezone != null) 'timezone': timezone,
@@ -141,7 +163,8 @@ class ApiService {
   Future<void> deleteLocation(int id) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/locations/$id');
     try {
-      final res = await _client.delete(uri, headers: _headers).timeout(ApiConfig.receiveTimeout);
+      final headers = await _getHeaders();
+      final res = await _client.delete(uri, headers: headers).timeout(ApiConfig.receiveTimeout);
       final body = jsonDecode(res.body) as Map<String, dynamic>;
       if (res.statusCode == 200 && body['success'] == true) return;
       throw ApiException(statusCode: res.statusCode, message: body['message'] as String? ?? 'Gagal hapus.');
@@ -156,7 +179,8 @@ class ApiService {
   Future<void> setPrimaryLocation(int id) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/locations/$id/primary');
     try {
-      final res = await _client.patch(uri, headers: _headers).timeout(ApiConfig.receiveTimeout);
+      final headers = await _getHeaders();
+      final res = await _client.patch(uri, headers: headers).timeout(ApiConfig.receiveTimeout);
       final body = jsonDecode(res.body) as Map<String, dynamic>;
       if (res.statusCode == 200 && body['success'] == true) return;
       throw ApiException(statusCode: res.statusCode, message: body['message'] as String? ?? 'Gagal set primary.');

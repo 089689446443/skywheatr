@@ -3,8 +3,10 @@ const { dbAll, dbGet, dbRun } = require('../db');
 // ── GET /api/locations ─────────────────────────────────────────
 async function getAllLocations(req, res) {
   try {
+    const deviceId = req.headers['x-device-id'] || 'default';
     const rows = await dbAll(
-      'SELECT * FROM locations ORDER BY is_primary DESC, created_at ASC'
+      'SELECT * FROM locations WHERE device_id = ? ORDER BY is_primary DESC, created_at ASC',
+      [deviceId]
     );
     res.json({ success: true, data: rows });
   } catch (err) {
@@ -15,7 +17,8 @@ async function getAllLocations(req, res) {
 // ── GET /api/locations/:id ─────────────────────────────────────
 async function getLocationById(req, res) {
   try {
-    const row = await dbGet('SELECT * FROM locations WHERE id = ?', [req.params.id]);
+    const deviceId = req.headers['x-device-id'] || 'default';
+    const row = await dbGet('SELECT * FROM locations WHERE id = ? AND device_id = ?', [req.params.id, deviceId]);
     if (!row) return res.status(404).json({ success: false, message: 'Lokasi tidak ditemukan.' });
     res.json({ success: true, data: row });
   } catch (err) {
@@ -35,10 +38,12 @@ async function createLocation(req, res) {
       });
     }
 
-    // Cek apakah sudah ada lokasi dengan lat/lon yang sama (toleransi 0.01°)
+    const deviceId = req.headers['x-device-id'] || 'default';
+    
+    // Cek apakah sudah ada lokasi dengan lat/lon yang sama (toleransi 0.01°) untuk device ini
     const existing = await dbGet(
-      'SELECT id FROM locations WHERE ABS(latitude - ?) < 0.01 AND ABS(longitude - ?) < 0.01',
-      [latitude, longitude]
+      'SELECT id FROM locations WHERE ABS(latitude - ?) < 0.01 AND ABS(longitude - ?) < 0.01 AND device_id = ?',
+      [latitude, longitude, deviceId]
     );
     if (existing) {
       return res.status(409).json({
@@ -47,14 +52,14 @@ async function createLocation(req, res) {
       });
     }
 
-    // Jika belum ada lokasi sama sekali, jadikan ini primary
-    const count = await dbGet('SELECT COUNT(*) as cnt FROM locations');
+    // Jika belum ada lokasi sama sekali untuk device ini, jadikan ini primary
+    const count = await dbGet('SELECT COUNT(*) as cnt FROM locations WHERE device_id = ?', [deviceId]);
     const isPrimary = count.cnt === 0 ? 1 : 0;
 
     const result = await dbRun(
-      `INSERT INTO locations (name, country, latitude, longitude, timezone, is_primary)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [name.trim(), country, parseFloat(latitude), parseFloat(longitude), timezone, isPrimary]
+      `INSERT INTO locations (device_id, name, country, latitude, longitude, timezone, is_primary)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [deviceId, name.trim(), country, parseFloat(latitude), parseFloat(longitude), timezone, isPrimary]
     );
 
     const newRow = await dbGet('SELECT * FROM locations WHERE id = ?', [result.lastID]);
@@ -73,8 +78,9 @@ async function updateLocation(req, res) {
   try {
     const { name, country, timezone } = req.body;
     const id = req.params.id;
+    const deviceId = req.headers['x-device-id'] || 'default';
 
-    const existing = await dbGet('SELECT * FROM locations WHERE id = ?', [id]);
+    const existing = await dbGet('SELECT * FROM locations WHERE id = ? AND device_id = ?', [id, deviceId]);
     if (!existing) {
       return res.status(404).json({ success: false, message: 'Lokasi tidak ditemukan.' });
     }
@@ -85,13 +91,14 @@ async function updateLocation(req, res) {
         country   = ?,
         timezone  = ?,
         updated_at = ?
-       WHERE id = ?`,
+       WHERE id = ? AND device_id = ?`,
       [
         name?.trim() ?? existing.name,
         country ?? existing.country,
         timezone ?? existing.timezone,
         new Date().toISOString(),
         id,
+        deviceId
       ]
     );
 
@@ -106,18 +113,19 @@ async function updateLocation(req, res) {
 async function deleteLocation(req, res) {
   try {
     const id = req.params.id;
-    const existing = await dbGet('SELECT * FROM locations WHERE id = ?', [id]);
+    const deviceId = req.headers['x-device-id'] || 'default';
+    const existing = await dbGet('SELECT * FROM locations WHERE id = ? AND device_id = ?', [id, deviceId]);
     if (!existing) {
       return res.status(404).json({ success: false, message: 'Lokasi tidak ditemukan.' });
     }
 
-    await dbRun('DELETE FROM locations WHERE id = ?', [id]);
+    await dbRun('DELETE FROM locations WHERE id = ? AND device_id = ?', [id, deviceId]);
 
     // Jika yang dihapus adalah primary, set lokasi pertama sebagai primary baru
     if (existing.is_primary === 1) {
-      const first = await dbGet('SELECT id FROM locations ORDER BY created_at ASC LIMIT 1');
+      const first = await dbGet('SELECT id FROM locations WHERE device_id = ? ORDER BY created_at ASC LIMIT 1', [deviceId]);
       if (first) {
-        await dbRun('UPDATE locations SET is_primary = 1 WHERE id = ?', [first.id]);
+        await dbRun('UPDATE locations SET is_primary = 1 WHERE id = ? AND device_id = ?', [first.id, deviceId]);
       }
     }
 
@@ -131,14 +139,15 @@ async function deleteLocation(req, res) {
 async function setPrimaryLocation(req, res) {
   try {
     const id = req.params.id;
-    const existing = await dbGet('SELECT * FROM locations WHERE id = ?', [id]);
+    const deviceId = req.headers['x-device-id'] || 'default';
+    const existing = await dbGet('SELECT * FROM locations WHERE id = ? AND device_id = ?', [id, deviceId]);
     if (!existing) {
       return res.status(404).json({ success: false, message: 'Lokasi tidak ditemukan.' });
     }
 
     // Reset semua, set yang dipilih jadi primary
-    await dbRun('UPDATE locations SET is_primary = 0');
-    await dbRun('UPDATE locations SET is_primary = 1 WHERE id = ?', [id]);
+    await dbRun('UPDATE locations SET is_primary = 0 WHERE device_id = ?', [deviceId]);
+    await dbRun('UPDATE locations SET is_primary = 1 WHERE id = ? AND device_id = ?', [id, deviceId]);
 
     res.json({ success: true, message: 'Lokasi utama berhasil diubah.' });
   } catch (err) {
