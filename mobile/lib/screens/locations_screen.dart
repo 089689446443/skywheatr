@@ -393,17 +393,30 @@ class _LocationsScreenState extends State<LocationsScreen> {
     final temp = weather != null ? '${weather.temperature.toStringAsFixed(0)}°C' : '--';
     final label = weather != null ? WeatherUtils.getWeatherLabel(weather.weatherCode) : 'Memuat...';
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     // Map weather code to our custom assets
-    String weatherIconAsset = 'assets/weather_partly_cloudy_day.png'; // default
-    if (weather != null) {
-      if (weather.weatherCode == 0) weatherIconAsset = 'assets/weather_partly_cloudy_day.png'; // clear day fallback
-      else if (weather.weatherCode >= 1 && weather.weatherCode <= 3) weatherIconAsset = 'assets/weather_partly_cloudy_day.png';
-      else if (weather.weatherCode >= 51 && weather.weatherCode <= 67) weatherIconAsset = 'assets/weather_light_rain.png';
-      else if (weather.weatherCode >= 71 && weather.weatherCode <= 77) weatherIconAsset = 'assets/weather_light_rain.png'; // snow placeholder
-      else if (weather.weatherCode >= 95) weatherIconAsset = 'assets/weather_thunder.png';
+    final weatherIconAsset = WeatherUtils.getWeatherIconAsset(weather?.weatherCode, isNight: isDark);
+    Widget iconWidget;
+    if (weatherIconAsset == 'draw_sun') {
+      iconWidget = Container(
+        width: 56, height: 56,
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: RadialGradient(
+            colors: [Color(0xFFFFD700), Color(0xFFFF8C00)],
+            center: Alignment.center,
+            radius: 0.8,
+          ),
+          boxShadow: [
+            BoxShadow(color: Color(0x33FFD700), blurRadius: 10, spreadRadius: 2),
+          ],
+        ),
+      );
+    } else {
+      iconWidget = Image.asset(weatherIconAsset, width: 56, height: 56);
     }
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? const Color(0xFF2C3542) : const Color(0xFF4D5B6E).withOpacity(0.9);
     final borderColor = isDark ? Colors.white.withOpacity(0.05) : Colors.white.withOpacity(0.15);
     final bottomBarBg = isDark ? const Color(0xFF222934) : const Color(0xFF3F4C5E).withOpacity(0.9);
@@ -454,7 +467,7 @@ class _LocationsScreenState extends State<LocationsScreen> {
                   // Icon & Temp
                   Column(
                     children: [
-                    Image.asset(weatherIconAsset, width: 56, height: 56),
+                    iconWidget,
                     const SizedBox(height: 6),
                     Text(temp, style: GoogleFonts.manrope(
                       fontSize: 24, fontWeight: FontWeight.w600, color: Colors.white,
