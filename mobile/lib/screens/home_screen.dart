@@ -314,8 +314,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ),
             ),
           ),
-        ],
-      ),
+          ], // Close inner Row children
+        ), // Close inner Row
+        ], // Close outer Row children
+      ), // Close outer Row
       ),
     );
   }
