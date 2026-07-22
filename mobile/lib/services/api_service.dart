@@ -92,6 +92,23 @@ class ApiService {
     }
   }
 
+  Future<String?> reverseGeocode(double lat, double lon) async {
+    try {
+      final uri = Uri.parse('https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lon&zoom=10&addressdetails=1');
+      final res = await _client.get(uri, headers: {
+        'User-Agent': 'skywheatr/1.0',
+      }).timeout(ApiConfig.receiveTimeout);
+      if (res.statusCode == 200) {
+        final body = jsonDecode(res.body);
+        final address = body['address'];
+        if (address != null) {
+          return address['city'] ?? address['town'] ?? address['county'] ?? address['state'];
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
   // ═══════════════════════════════════════════════════════
   // LOCATIONS CRUD
   // ═══════════════════════════════════════════════════════

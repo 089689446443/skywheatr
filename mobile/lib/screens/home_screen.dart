@@ -83,9 +83,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       );
 
       // Save as new location with a generic name (or reverse geocode)
-      // Since we don't have reverse geocoding in API service directly, we'll just name it 'Lokasi Saat Ini'
+      String cityName = 'Lokasi Saat Ini';
+      try {
+        final locName = await _api.reverseGeocode(position.latitude, position.longitude);
+        if (locName != null) {
+          cityName = '$locName|Lokasi Saat Ini';
+        }
+      } catch (_) {}
+
       final newLoc = Location(
-        name: 'Lokasi Saat Ini',
+        name: cityName,
         latitude: position.latitude,
         longitude: position.longitude,
       );
@@ -232,7 +239,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     return Positioned(
       top: 0, left: 0, right: 0,
       child: Container(
-        color: Colors.transparent,
+        color: isDark ? const Color(0xFF1E2631) : _bg, // match background
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -527,8 +534,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     const SizedBox(height: 12),
                     Builder(
                       builder: (context) {
-                        final isNight = Theme.of(context).brightness == Brightness.dark;
-                        final asset = WeatherUtils.getWeatherIconAsset(d.weatherCode, isNight: isNight);
+                        // Perkiraan cuaca mingguan selalu menggunakan ikon siang hari (tidak perlu ikon bulan)
+                        final asset = WeatherUtils.getWeatherIconAsset(d.weatherCode, isNight: false);
                         if (asset == 'draw_sun') {
                           return Container(
                             width: 32, height: 32,
