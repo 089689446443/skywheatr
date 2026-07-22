@@ -235,9 +235,21 @@ class _LocationsScreenState extends State<LocationsScreen> {
                     )),
                   ),
                 ),
-                // Toggle Switch
-                GestureDetector(
-                  onTap: () {
+                Row(
+                  children: [
+                    StreamBuilder(
+                      stream: Stream.periodic(const Duration(seconds: 1)),
+                      builder: (context, snapshot) {
+                        return Text(
+                          DateFormat('HH.mm').format(DateTime.now()),
+                          style: GoogleFonts.inter(fontSize: 15, color: textColor, fontWeight: FontWeight.w500),
+                        );
+                      },
+                    ),
+                    const SizedBox(width: 12),
+                    // Toggle Switch
+                    GestureDetector(
+                      onTap: () {
                     themeNotifier.value = isDark ? ThemeMode.light : ThemeMode.dark;
                   },
                   child: Container(
@@ -280,6 +292,8 @@ class _LocationsScreenState extends State<LocationsScreen> {
                     ),
                   ),
                 ),
+                ],
+              ),
               ]),
             ),
             // Title Header
