@@ -238,10 +238,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
     return Positioned(
       top: 0, left: 0, right: 0,
-      child: Container(
-        color: isDark ? const Color(0xFF1E2631) : _bg, // match background
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      child: Row(
+      child: ClipRect(
+        child: BackdropFilter(
+          filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            color: (isDark ? const Color(0xFF1E2631) : _bg).withOpacity(0.7), // semi-transparent match background
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           GestureDetector(
@@ -304,6 +307,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ),
         ],
       ),
+          ),
+        ),
       ),
     );
   }
@@ -323,14 +328,35 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
     return Column(
       children: [
-        Text(
-          displayName,
-          style: GoogleFonts.manrope(
-            fontSize: 28,
-            fontWeight: FontWeight.w800,
-            color: _textMain,
-          ),
-          textAlign: TextAlign.center,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Flexible(
+              child: Text(
+                displayName,
+                style: GoogleFonts.manrope(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w800,
+                  color: _textMain,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: StreamBuilder(
+                stream: Stream.periodic(const Duration(seconds: 1)),
+                builder: (context, snapshot) {
+                  return Text(
+                    DateFormat('HH:mm').format(DateTime.now()),
+                    style: GoogleFonts.manrope(fontSize: 14, color: _textSub, fontWeight: FontWeight.w600),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
         if (loc.country.isNotEmpty)
           Text(
@@ -366,8 +392,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             
             return Image.asset(
               asset, 
-              width: 140, 
-              height: 140, 
+              width: 120, 
+              height: 120, 
               fit: BoxFit.contain
             );
           }
