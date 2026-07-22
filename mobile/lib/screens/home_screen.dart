@@ -191,12 +191,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     ? _buildError()
                     : _primaryLocation == null
                         ? _buildNoLocation()
-                        : Stack(
-                            children: [
-                              _buildDashboard(),
-                              _buildTopBar(),
-                            ],
-                          ),
+                        : _buildDashboard(),
           ),
 
           // Floating Bottom Navigation
@@ -214,10 +209,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   // ── DASHBOARD ──────────────────────────────────────────────
   Widget _buildDashboard() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.only(top: 70, bottom: 120),
+      padding: const EdgeInsets.only(bottom: 120),
       physics: const BouncingScrollPhysics(),
       child: Column(
         children: [
+          _buildTopBar(),
           _buildHeroSection(),
           const SizedBox(height: 40),
           _buildTodaySummary(),
@@ -234,90 +230,94 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   // ── TOP BAR ────────────────────────────────────────────────
   Widget _buildTopBar() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Positioned(
-      top: 0, left: 0, right: 0,
-      child: Container(
-        color: Colors.transparent,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Container(
+      color: Colors.transparent,
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+      child: Stack(
+        alignment: Alignment.center,
         children: [
-          GestureDetector(
-            onTap: _goToLocations,
-            child: Image.asset('assets/ic_menu.png', width: 24, height: 24, color: _textMain),
-          ),
-          Text(
-            'skywheathr',
-            style: GoogleFonts.manrope(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              color: _textMain,
+          Align(
+            alignment: Alignment.centerLeft,
+            child: GestureDetector(
+              onTap: _goToLocations,
+              child: Image.asset('assets/ic_menu.png', width: 24, height: 24, color: _textMain),
             ),
           ),
-          Row(
-            children: [
-              StreamBuilder(
-                stream: Stream.periodic(const Duration(seconds: 1)),
-                builder: (context, snapshot) {
-                  return Text(
-                    DateFormat('HH.mm').format(DateTime.now()),
-                    style: GoogleFonts.inter(fontSize: 15, color: _textMain, fontWeight: FontWeight.w500),
-                  );
-                },
-              ),
-              const SizedBox(width: 12),
-              // Toggle Switch 
-              GestureDetector(
-                onTap: () {
-              final isDark = Theme.of(context).brightness == Brightness.dark;
-              themeNotifier.value = isDark ? ThemeMode.light : ThemeMode.dark;
-            },
-            child: Container(
-              width: 50,
-              height: 28,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              padding: const EdgeInsets.all(4),
-              child: Stack(
-                children: [
-                  AnimatedAlign(
-                    duration: const Duration(milliseconds: 200),
-                    alignment: Theme.of(context).brightness == Brightness.dark
-                        ? Alignment.centerRight
-                        : Alignment.centerLeft,
-                    child: Container(
-                      width: 20,
-                      height: 20,
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ),
-                  Align(
-                    alignment: Theme.of(context).brightness == Brightness.dark
-                        ? Alignment.centerLeft
-                        : Alignment.centerRight,
-                    child: Icon(
-                      Theme.of(context).brightness == Brightness.dark 
-                          ? Icons.nightlight_round 
-                          : Icons.wb_sunny,
-                      color: const Color(0xFFFACC15),
-                      size: 14,
-                    ),
-                  ),
-                ],
+          Center(
+            child: Text(
+              'skywheathr',
+              style: GoogleFonts.manrope(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: _textMain,
               ),
             ),
           ),
-          ], // Close inner Row children
-        ), // Close inner Row
-        ], // Close outer Row children
-      ), // Close outer Row
+          Align(
+            alignment: Alignment.centerRight,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                StreamBuilder(
+                  stream: Stream.periodic(const Duration(seconds: 1)),
+                  builder: (context, snapshot) {
+                    return Text(
+                      DateFormat('HH.mm').format(DateTime.now()),
+                      style: GoogleFonts.inter(fontSize: 15, color: _textMain, fontWeight: FontWeight.w500),
+                    );
+                  },
+                ),
+                const SizedBox(width: 12),
+                // Toggle Switch 
+                GestureDetector(
+                  onTap: () {
+                    final isDark = Theme.of(context).brightness == Brightness.dark;
+                    themeNotifier.value = isDark ? ThemeMode.light : ThemeMode.dark;
+                  },
+                  child: Container(
+                    width: 50,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    padding: const EdgeInsets.all(4),
+                    child: Stack(
+                      children: [
+                        AnimatedAlign(
+                          duration: const Duration(milliseconds: 200),
+                          alignment: Theme.of(context).brightness == Brightness.dark
+                              ? Alignment.centerRight
+                              : Alignment.centerLeft,
+                          child: Container(
+                            width: 20,
+                            height: 20,
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                        Align(
+                          alignment: Theme.of(context).brightness == Brightness.dark
+                              ? Alignment.centerLeft
+                              : Alignment.centerRight,
+                          child: Icon(
+                            Theme.of(context).brightness == Brightness.dark 
+                                ? Icons.nightlight_round 
+                                : Icons.wb_sunny,
+                            color: const Color(0xFFFACC15),
+                            size: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

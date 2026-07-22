@@ -223,78 +223,86 @@ class _LocationsScreenState extends State<LocationsScreen> {
             // ── Top bar ────────────────────────────────────────
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-              child: Row(children: [
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: Image.asset('assets/ic_back.png', width: 24, height: 24, color: textColor),
-                ),
-                Expanded(
-                  child: Center(
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Image.asset('assets/ic_back.png', width: 24, height: 24, color: textColor),
+                    ),
+                  ),
+                  Center(
                     child: Text('skywheathr', style: GoogleFonts.manrope(
                       fontSize: 20, fontWeight: FontWeight.w700, color: textColor,
                     )),
                   ),
-                ),
-                Row(
-                  children: [
-                    StreamBuilder(
-                      stream: Stream.periodic(const Duration(seconds: 1)),
-                      builder: (context, snapshot) {
-                        return Text(
-                          DateFormat('HH.mm').format(DateTime.now()),
-                          style: GoogleFonts.inter(fontSize: 15, color: textColor, fontWeight: FontWeight.w500),
-                        );
-                      },
-                    ),
-                    const SizedBox(width: 12),
-                    // Toggle Switch
-                    GestureDetector(
-                      onTap: () {
-                    themeNotifier.value = isDark ? ThemeMode.light : ThemeMode.dark;
-                  },
-                  child: Container(
-                    width: 50,
-                    height: 28,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    padding: const EdgeInsets.all(4),
-                    child: Stack(
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        AnimatedAlign(
-                          duration: const Duration(milliseconds: 200),
-                          alignment: Theme.of(context).brightness == Brightness.dark
-                              ? Alignment.centerRight
-                              : Alignment.centerLeft,
-                          child: Container(
-                            width: 20,
-                            height: 20,
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
+                        StreamBuilder(
+                          stream: Stream.periodic(const Duration(seconds: 1)),
+                          builder: (context, snapshot) {
+                            return Text(
+                              DateFormat('HH.mm').format(DateTime.now()),
+                              style: GoogleFonts.inter(fontSize: 15, color: textColor, fontWeight: FontWeight.w500),
+                            );
+                          },
                         ),
-                        Align(
-                          alignment: Theme.of(context).brightness == Brightness.dark
-                              ? Alignment.centerLeft
-                              : Alignment.centerRight,
-                          child: Icon(
-                            Theme.of(context).brightness == Brightness.dark 
-                                ? Icons.nightlight_round 
-                                : Icons.wb_sunny,
-                            color: const Color(0xFFFACC15),
-                            size: 14,
+                        const SizedBox(width: 12),
+                        // Toggle Switch
+                        GestureDetector(
+                          onTap: () {
+                            themeNotifier.value = isDark ? ThemeMode.light : ThemeMode.dark;
+                          },
+                          child: Container(
+                            width: 50,
+                            height: 28,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.3),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            padding: const EdgeInsets.all(4),
+                            child: Stack(
+                              children: [
+                                AnimatedAlign(
+                                  duration: const Duration(milliseconds: 200),
+                                  alignment: Theme.of(context).brightness == Brightness.dark
+                                      ? Alignment.centerRight
+                                      : Alignment.centerLeft,
+                                  child: Container(
+                                    width: 20,
+                                    height: 20,
+                                    decoration: const BoxDecoration(
+                                      color: Colors.white,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                ),
+                                Align(
+                                  alignment: Theme.of(context).brightness == Brightness.dark
+                                      ? Alignment.centerLeft
+                                      : Alignment.centerRight,
+                                  child: Icon(
+                                    Theme.of(context).brightness == Brightness.dark 
+                                        ? Icons.nightlight_round 
+                                        : Icons.wb_sunny,
+                                    color: const Color(0xFFFACC15),
+                                    size: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ),
-                ),
                 ],
               ),
-              ]),
             ),
             // Title Header
             Padding(
