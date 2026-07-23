@@ -341,7 +341,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         Text(
           displayName,
           style: GoogleFonts.manrope(
-            fontSize: 28,
+            fontSize: 18,
             fontWeight: FontWeight.w800,
             color: _textMain,
           ),

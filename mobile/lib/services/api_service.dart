@@ -47,6 +47,29 @@ class ApiService {
 
   /// Ambil cuaca + hourly 24 jam + daily 7 hari
   Future<WeatherData> fetchWeather({required double lat, required double lon}) async {
+    final cacheKey = 'weather_cache_${lat.toStringAsFixed(4)}_${lon.toStringAsFixed(4)}';
+    final prefs = await SharedPreferences.getInstance();
+    
+    // Check Local Cache
+    final cacheData = prefs.getString(cacheKey);
+    final cacheTimestamp = prefs.getInt('${cacheKey}_time');
+    WeatherData? cachedWeather;
+
+    if (cacheData != null && cacheTimestamp != null) {
+      try {
+        final body = jsonDecode(cacheData) as Map<String, dynamic>;
+        cachedWeather = WeatherData.fromJson(body['data'] as Map<String, dynamic>);
+        
+        final now = DateTime.now().millisecondsSinceEpoch;
+        // 1 hour = 3600000 milliseconds
+        if (now - cacheTimestamp < 3600000) {
+          return cachedWeather; // Return instant cache (0 detik)
+        }
+      } catch (e) {
+        // Ignore parse error and proceed to fetch
+      }
+    }
+
     final uri = Uri.parse(
       '${ApiConfig.baseUrl}/api/weather?lat=$lat&lon=$lon',
     );
@@ -55,15 +78,22 @@ class ApiService {
       final res = await _client.get(uri, headers: headers).timeout(ApiConfig.receiveTimeout);
       final body = jsonDecode(res.body) as Map<String, dynamic>;
       if (res.statusCode == 200 && body['success'] == true) {
+        // Save to cache
+        await prefs.setString(cacheKey, res.body);
+        await prefs.setInt('${cacheKey}_time', DateTime.now().millisecondsSinceEpoch);
+        
         return WeatherData.fromJson(body['data'] as Map<String, dynamic>);
       }
       throw ApiException(statusCode: res.statusCode, message: body['message'] as String? ?? 'Error');
     } on ApiException {
       rethrow;
     } catch (e) {
+      // Offline Fallback: If no connection, return expired cache if exists
+      if (cachedWeather != null) return cachedWeather;
+      
       throw ApiException(
         statusCode: 0,
-        message: 'Tidak dapat terhubung ke server. Pastikan backend berjalan.',
+        message: 'Tidak dapat terhubung ke server. Pastikan Anda memiliki koneksi internet.',
       );
     }
   }
