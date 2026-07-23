@@ -43,13 +43,14 @@ async function getCurrentWeather(req, res) {
           'precipitation',
           'uv_index',
         ].join(','),
-        // Data per jam — 24 jam ke depan
+        // Data per jam — 168 jam ke depan (7 hari)
         hourly: [
           'temperature_2m',
           'weather_code',
           'wind_speed_10m',
           'precipitation_probability',
           'relative_humidity_2m',
+          'uv_index',
         ].join(','),
         // Data harian — 7 hari
         daily: [
@@ -64,7 +65,6 @@ async function getCurrentWeather(req, res) {
         ].join(','),
         timezone: 'auto',
         forecast_days: 7,
-        forecast_hours: 24,
       },
       timeout: 12000,
     });
@@ -76,12 +76,10 @@ async function getCurrentWeather(req, res) {
       return res.status(502).json({ success: false, message: 'Respons Open-Meteo tidak valid.' });
     }
 
-    // ── Format hourly (ambil 24 jam ke depan mulai dari jam sekarang) ──
-    const nowTime = cur.time; // format "2024-07-14T13:00"
+    // ── Format hourly (ambil seluruh 168 jam dari API) ──
     const hourlyTimes = d.hourly?.time ?? [];
-    const nowIdx = hourlyTimes.findIndex((t) => t >= nowTime);
-    const startIdx = nowIdx >= 0 ? nowIdx : 0;
-    const endIdx = Math.min(startIdx + 24, hourlyTimes.length);
+    const startIdx = 0;
+    const endIdx = hourlyTimes.length;
 
     const hourly = [];
     for (let i = startIdx; i < endIdx; i++) {
@@ -92,6 +90,7 @@ async function getCurrentWeather(req, res) {
         wind_speed: d.hourly.wind_speed_10m?.[i] ?? null,
         precipitation_probability: d.hourly.precipitation_probability?.[i] ?? null,
         humidity: d.hourly.relative_humidity_2m?.[i] ?? null,
+        uv_index: d.hourly.uv_index?.[i] ?? null,
       });
     }
 
