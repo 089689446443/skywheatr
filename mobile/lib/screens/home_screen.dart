@@ -12,6 +12,7 @@ import '../utils/weather_utils.dart';
 import '../main.dart'; // import themeNotifier
 import 'locations_screen.dart';
 import 'search_screen.dart';
+import 'weather_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final List<Location> initialLocations;
@@ -534,41 +535,56 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               final emoji = WeatherUtils.getWeatherEmoji(d.weatherCode);
               final temp = d.tempMax?.toStringAsFixed(0) ?? '--';
 
-              return Container(
-                width: 55,
-                margin: const EdgeInsets.symmetric(horizontal: 5),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: Column(
-                  children: [
-                    Text(dayName, style: GoogleFonts.manrope(fontSize: 12, fontWeight: FontWeight.w500, color: _textMain)),
-                    const SizedBox(height: 12),
-                    Builder(
-                      builder: (context) {
-                        // Perkiraan cuaca mingguan selalu menggunakan ikon siang hari (tidak perlu ikon bulan)
-                        final asset = WeatherUtils.getWeatherIconAsset(d.weatherCode, isNight: false);
-                        if (asset == 'draw_sun') {
-                          return Container(
-                            width: 32, height: 32,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: LinearGradient(
-                                colors: [Color(0xFFFFE082), Color(0xFFFF8F00)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                            ),
-                          );
-                        }
-                        return Image.asset(asset, width: 36, height: 36);
-                      }
+              return GestureDetector(
+                onTap: () {
+                  final filteredHourly = _weather!.hourly.where((h) => h.time.startsWith(d.date)).toList();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => WeatherDetailScreen(
+                        location: _primaryLocation!,
+                        daily: d,
+                        hourlyData: filteredHourly,
+                      ),
                     ),
-                    const SizedBox(height: 12),
-                    Text('$temp°', style: GoogleFonts.lexend(fontSize: 18, color: _textMain)),
-                  ],
+                  );
+                },
+                child: Container(
+                  width: 55,
+                  margin: const EdgeInsets.symmetric(horizontal: 5),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(dayName, style: GoogleFonts.manrope(fontSize: 12, fontWeight: FontWeight.w500, color: _textMain)),
+                      const SizedBox(height: 12),
+                      Builder(
+                        builder: (context) {
+                          // Perkiraan cuaca mingguan selalu menggunakan ikon siang hari (tidak perlu ikon bulan)
+                          final asset = WeatherUtils.getWeatherIconAsset(d.weatherCode, isNight: false);
+                          if (asset == 'draw_sun') {
+                            return Container(
+                              width: 32, height: 32,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: LinearGradient(
+                                  colors: [Color(0xFFFFE082), Color(0xFFFF8F00)],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                              ),
+                            );
+                          }
+                          return Image.asset(asset, width: 36, height: 36);
+                        }
+                      ),
+                      const SizedBox(height: 12),
+                      Text('$temp°', style: GoogleFonts.lexend(fontSize: 18, color: _textMain)),
+                    ],
+                  ),
                 ),
               );
             }),

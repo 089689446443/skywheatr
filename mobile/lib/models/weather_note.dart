@@ -6,6 +6,7 @@ class HourlyForecast {
   final double? windSpeed;
   final int? precipitationProbability;
   final double? humidity;
+  final double? uvIndex;
 
   const HourlyForecast({
     required this.time,
@@ -14,6 +15,7 @@ class HourlyForecast {
     this.windSpeed,
     this.precipitationProbability,
     this.humidity,
+    this.uvIndex,
   });
 
   factory HourlyForecast.fromJson(Map<String, dynamic> json) {
@@ -24,6 +26,7 @@ class HourlyForecast {
       windSpeed: (json['wind_speed'] as num?)?.toDouble(),
       precipitationProbability: (json['precipitation_probability'] as num?)?.toInt(),
       humidity: (json['humidity'] as num?)?.toDouble(),
+      uvIndex: (json['uv_index'] as num?)?.toDouble(),
     );
   }
 }
